@@ -22,6 +22,15 @@
   @page {
     size: A4;
     margin: 12mm 10mm;
+    /* ブラウザデフォルトのURL・日付・タイトル印刷を非表示 */
+    margin-header: 0;
+    margin-footer: 0;
+  }
+
+  @page {
+    /* Chrome/Edge向け */
+    size: A4;
+    margin: 12mm 10mm;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -299,9 +308,9 @@
 
   <!-- ① 発行日・見積番号・担当（右上） -->
   <div class="issue-info">
-    <!-- {{発行日}} -->2026年4月28日<br>
-    見積番号：&nbsp;&nbsp;No.MTM0699<br>
-    担当：&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<!-- {{担当者}} -->加藤
+    {{発行日}}<br>
+    見積番号：&nbsp;&nbsp;No.MTM0000<br>
+    担当：&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{担当者}}
   </div>
 
   <!-- ② 見積書タイトル（全幅中央） -->
@@ -309,7 +318,7 @@
 
   <!-- ③ 宛名（左） -->
   <div class="recipient-block">
-    <span class="recipient-name"><!-- {{宛名}} -->加藤 洋美</span>
+    <span class="recipient-name">{{宛名}}</span>
     <span class="recipient-sama">様</span>
   </div>
 
@@ -318,11 +327,11 @@
     <div class="meta-area">
       <div class="meta-row">
         <span class="meta-label">有効期限：</span>
-        <span><!-- {{有効期限}} -->2026年5月5日</span>
+        <span>{{有効期限}}</span>
       </div>
       <div class="meta-row">
         <span class="meta-label">件名：</span>
-        <span class="meta-value"><!-- {{件名}} -->交換工事のお見積り</span>
+        <span class="meta-value">{{件名}}</span>
       </div>
     </div>
     <div class="company-info-block">
@@ -344,7 +353,7 @@
   <!-- お見積金額 -->
   <div class="amount-section">
     <div class="amount-label">お見積金額</div>
-    <div class="amount-box"><!-- {{合計金額}} -->￥ 175,800 -</div>
+    <div class="amount-box">{{合計金額}}</div>
   </div>
 
   <!-- 明細テーブル -->
@@ -360,21 +369,13 @@
     <tbody>
       <!-- ★ 提案品目行（Geminiが差し替え） -->
       <tr>
-        <td class="col-name"><!-- {{型式}} -->FH-E2422SAWL</td>
+        <td class="col-name">{{型式}}</td>
         <td class="col-qty">1</td>
-        <td class="col-price"><!-- {{提案金額}} -->¥166,800</td>
+        <td class="col-price">{{提案金額}}</td>
         <td class="col-note">商品代金（税込）<br>撤去費・引取費含む</td>
       </tr>
 
-      <!-- ★ 追加費用行（Geminiが提案ごとに差し替え・行数可変） -->
-      <tr>
-        <td class="col-name"><!-- {{追加品名1}} -->据置台</td>
-        <td class="col-qty">1</td>
-        <td class="col-price"><!-- {{追加金額1}} -->¥9,000</td>
-        <td class="col-note"></td>
-      </tr>
-
-      <!-- 空行（品目行＋追加行＋空行で合計10行になるよう調整） -->
+      <!-- 空行（追加費用行はJSが動的挿入） -->
       <tr class="empty-row"><td></td><td></td><td></td><td></td></tr>
       <tr class="empty-row"><td></td><td></td><td></td><td></td></tr>
       <tr class="empty-row"><td></td><td></td><td></td><td></td></tr>
@@ -392,22 +393,20 @@
     <!-- 左：既設・提案機種詳細 -->
     <div class="proposal-detail">
       <div class="proposal-title">【提案機種詳細】</div>
-      <!-- {{提案詳細}} -->
-      ノーリツ24号　エコジョーズ　フルオート　壁掛け<br>
-      品番：FH-E2422SAWL<br><br>
-      【既設機種】<!-- {{既設}} -->GT-2428SAWX
+      {{提案詳細}}<br>
+      【既設機種】{{既設}}
     </div>
 
     <!-- 右：小計・割引・合計 -->
     <div class="subtotal-area">
       <div class="subtotal-row">
         <span class="row-label">商品代金（税込）</span>
-        <span class="row-value"><!-- {{小計}} -->¥175,800</span>
+        <span class="row-value">{{小計}}</span>
       </div>
       <!-- 割引がある場合のみ表示。ない場合はこの行を削除 -->
       <div class="subtotal-row discount">
         <span class="row-label">特典割引</span>
-        <span class="row-value"><!-- {{割引額}} -->¥-10,000</span>
+        <span class="row-value">{{割引額}}</span>
       </div>
       <!-- 割引がある場合の空行調整 -->
       <div class="subtotal-row">
@@ -416,7 +415,7 @@
       </div>
       <div class="subtotal-row total">
         <span class="row-label">合計金額（税込）</span>
-        <span class="row-value"><!-- {{合計金額}} -->¥165,800</span>
+        <span class="row-value">{{合計金額2}}</span>
       </div>
     </div>
 
@@ -425,14 +424,7 @@
   <!-- セット内容（固定） -->
   <div class="set-contents">
     <div class="set-title">【交換工事に含まれるもの】</div>
-    <div class="set-items">
-      <div>・給湯器本体</div>
-      <div>・施工費</div>
-      <div>・撤去・引取込み</div>
-      <div>・交通費</div>
-      <div>・消費税</div>
-      <div>・施工10年保証</div>
-    </div>
+    <div class="set-items" id="setItemsPlaceholder">{{セット内容}}</div>
     <!-- コメントがある場合のみ下記を出力。ない場合はこの行ごと削除。
     <div class="set-note">★{{コメント内容}}</div>
     -->

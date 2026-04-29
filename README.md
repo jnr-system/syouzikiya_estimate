@@ -5,7 +5,7 @@
 ## フォルダ構成
 
 ```
-shouzikiya-estimate/
+syouzikiya_estimate/
 ├── index.html              # メインアプリ
 ├── README.md               # このファイル
 ├── assets/
@@ -20,51 +20,28 @@ shouzikiya-estimate/
 
 ## 機能
 
-- 価格表からタブ区切りで貼り付け → 品名・型式・金額を自動分解
-- 追加部材・工事をプルダウンで選択（参照シートの品目を登録済み）
-- 割引をプルダウンで選択
-- 合計金額のリアルタイム計算
-- 提案1〜3のタブ切替
-- メール本文の自動生成
-- 見積書プレビュー（印刷→PDF保存）
+- **価格表貼り付け解析**：タブ区切りで「品名・型式・金額」を貼り付けると自動分解し、提案１に反映
+- **提案タブ**：提案１〜５のタブ切替（型式を入力した提案のみ生成対象）
+- **追加部材・追加工事**：プルダウンで選択・追加（重複防止あり）
+- **割引選択**：プルダウンで割引種別を選択
+- **合計金額リアルタイム計算**：本体＋追加合計＋割引を即時反映
+- **交換工事に含まれるもの**：チェックボックスで選択（標準セットはデフォルトON）
+- **メール本文自動生成**：提案内容・交換費用・署名を含む完全なメール文を生成・コピー
+- **見積書PDF保存**：「PDFとして保存」ボタンで直接ダウンロード（ファイル名：`【正直屋　お見積書】YYYYMMDD顧客名様.pdf`）
 
-## ConoHaへのデプロイ手順
+## メール本文の構成
 
-### 1. Nginxの設定
-
-```nginx
-server {
-    listen 80;
-    server_name estimate.shouzikiya.jp;  # ドメインに合わせて変更
-
-    root /var/www/shouzikiya-estimate;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ =404;
-    }
-}
-```
-
-### 2. ファイルのアップロード
-
-```bash
-# SFTPまたはscpでVPSにアップロード
-scp -r ./shouzikiya-estimate/ user@conoha-ip:/var/www/
-
-# パーミッション設定
-chmod -R 755 /var/www/shouzikiya-estimate
-```
-
-### 3. SSL設定（推奨）
-
-```bash
-certbot --nginx -d estimate.shouzikiya.jp
-```
+1. 冒頭文
+2. 新設商品①〜⑤（品名・型式）
+3. 【交換費用：税込】（割引前→割引後）
+4. 【交換工事に含まれるもの】（チェックボックスで選択した項目）
+5. 有効期限注意書き
+6. よくある質問・お申し込みフォームURL
+7. 署名（担当者名・各店舗情報）
 
 ## データのメンテナンス
 
-### オプション品目の追加・変更
+### オプション品目・割引の追加・変更
 
 `data/options.json` を編集する。
 
@@ -83,7 +60,56 @@ certbot --nginx -d estimate.shouzikiya.jp
 
 ### 見積書テンプレートの変更
 
-`templates/estimate.html` を直接編集する。
+`templates/estimate.html` を直接編集する。プレースホルダーは `{{変数名}}` 形式。
+
+| プレースホルダー | 内容 |
+|---|---|
+| `{{発行日}}` | 発行日 |
+| `{{担当者}}` | 担当者名 |
+| `{{宛名}}` | 顧客名 |
+| `{{有効期限}}` | 有効期限（発行日+7日） |
+| `{{件名}}` | 件名（固定：交換工事のお見積り） |
+| `{{合計金額}}` | ヘッダー部の合計金額 |
+| `{{型式}}` | 給湯器型式 |
+| `{{提案金額}}` | 本体金額 |
+| `{{提案詳細}}` | 提案機種詳細テキスト |
+| `{{既設}}` | 既設機種 |
+| `{{小計}}` | 本体＋追加の小計 |
+| `{{割引額}}` | 割引額 |
+| `{{合計金額2}}` | フッター部の合計金額 |
+| `{{セット内容}}` | 交換工事に含まれるもの |
+
+## ConoHaへのデプロイ手順
+
+### 1. Nginxの設定
+
+```nginx
+server {
+    listen 80;
+    server_name estimate.shouzikiya.jp;
+
+    root /var/www/syouzikiya_estimate;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
+```
+
+### 2. ファイルのアップロード
+
+```bash
+scp -r ./syouzikiya_estimate/ user@conoha-ip:/var/www/
+
+chmod -R 755 /var/www/syouzikiya_estimate
+```
+
+### 3. SSL設定（推奨）
+
+```bash
+certbot --nginx -d estimate.shouzikiya.jp
+```
 
 ## 今後の拡張予定
 

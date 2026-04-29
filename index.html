@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>正直屋 見積書作成</title>
-<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 
@@ -79,6 +79,8 @@
         <button class="tab-btn active" onclick="switchTab(1)">提案１</button>
         <button class="tab-btn" onclick="switchTab(2)">提案２</button>
         <button class="tab-btn" onclick="switchTab(3)">提案３</button>
+        <button class="tab-btn" onclick="switchTab(4)">提案４</button>
+        <button class="tab-btn" onclick="switchTab(5)">提案５</button>
       </div>
 
       <!-- 提案1 -->
@@ -181,10 +183,109 @@
           <input type="text" id="p3_comment" placeholder="例：+5,000円で10年保証に延長可能">
         </div>
       </div>
+      <!-- 提案4 -->
+      <div class="proposal-panel" id="panel4">
+        <input type="hidden" id="p4_productName">
+        <div class="form-grid">
+          <div class="field">
+            <label>型式</label>
+            <input type="text" id="p4_model" placeholder="型式を入力">
+          </div>
+          <div class="field">
+            <label>本体金額（税込）</label>
+            <input type="text" id="p4_price" placeholder="例：133400" oninput="calcSubtotal(4)">
+          </div>
+        </div>
+        <div>
+          <label style="display:block;margin-bottom:8px;">追加部材・追加工事</label>
+          <div class="options-list" id="p4_options"></div>
+          <div class="option-add-row">
+            <select id="p4_optSelect" onchange="addOption(4)"></select>
+          </div>
+        </div>
+        <div class="discount-row">
+          <label>割引</label>
+          <select id="p4_discount" onchange="calcSubtotal(4)"></select>
+        </div>
+        <div class="subtotal-display">
+          <div class="subtotal-row total"><span>合計金額（税込）</span><span id="p4_total">¥0</span></div>
+        </div>
+        <div class="field">
+          <label>コメント（任意）</label>
+          <input type="text" id="p4_comment" placeholder="例：+5,000円で10年保証に延長可能">
+        </div>
+      </div>
+
+      <!-- 提案5 -->
+      <div class="proposal-panel" id="panel5">
+        <input type="hidden" id="p5_productName">
+        <div class="form-grid">
+          <div class="field">
+            <label>型式</label>
+            <input type="text" id="p5_model" placeholder="型式を入力">
+          </div>
+          <div class="field">
+            <label>本体金額（税込）</label>
+            <input type="text" id="p5_price" placeholder="例：133400" oninput="calcSubtotal(5)">
+          </div>
+        </div>
+        <div>
+          <label style="display:block;margin-bottom:8px;">追加部材・追加工事</label>
+          <div class="options-list" id="p5_options"></div>
+          <div class="option-add-row">
+            <select id="p5_optSelect" onchange="addOption(5)"></select>
+          </div>
+        </div>
+        <div class="discount-row">
+          <label>割引</label>
+          <select id="p5_discount" onchange="calcSubtotal(5)"></select>
+        </div>
+        <div class="subtotal-display">
+          <div class="subtotal-row total"><span>合計金額（税込）</span><span id="p5_total">¥0</span></div>
+        </div>
+        <div class="field">
+          <label>コメント（任意）</label>
+          <input type="text" id="p5_comment" placeholder="例：+5,000円で10年保証に延長可能">
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <!-- ④ 生成ボタン -->
+  <!-- ④ 交換工事に含まれるもの -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">🔧</div>
+      <span class="card-header-title">交換工事に含まれるもの</span>
+    </div>
+    <div class="card-body">
+      <p style="font-size:12px;color:var(--text-sub);margin-bottom:12px;">メール・見積書に記載する内容を選択してください</p>
+      <div class="check-grid">
+        <div class="check-section-label">■ 標準セット</div>
+        <label class="check-item"><input type="checkbox" name="included" value="本体（給湯器・設備機器）" checked>本体（給湯器・設備機器）</label>
+        <label class="check-item"><input type="checkbox" name="included" value="標準工事取付費" checked>標準工事取付費</label>
+        <label class="check-item"><input type="checkbox" name="included" value="台所リモコン">台所リモコン</label>
+        <label class="check-item"><input type="checkbox" name="included" value="浴室リモコン">浴室リモコン</label>
+        <label class="check-item"><input type="checkbox" name="included" value="既設撤去・引取処分費" checked>既設撤去・引取処分費</label>
+        <label class="check-item"><input type="checkbox" name="included" value="交通費・諸経費" checked>交通費・諸経費</label>
+        <label class="check-item"><input type="checkbox" name="included" value="消費税（10%）" checked>消費税（10%）</label>
+        <label class="check-item"><input type="checkbox" name="included" value="工事10年保証" checked>工事10年保証</label>
+        <label class="check-item"><input type="checkbox" name="included" value="製品10年保証">製品10年保証</label>
+        <div class="check-section-label" style="margin-top:12px;">■ オプション</div>
+        <label class="check-item"><input type="checkbox" name="included" value="据置台">据置台</label>
+        <label class="check-item"><input type="checkbox" name="included" value="配管カバー">配管カバー</label>
+        <label class="check-item"><input type="checkbox" name="included" value="PSアダプター / PSパッキン">PSアダプター / PSパッキン</label>
+        <label class="check-item"><input type="checkbox" name="included" value="排気カバー">排気カバー</label>
+        <label class="check-item"><input type="checkbox" name="included" value="狭所作業費">狭所作業費</label>
+        <label class="check-item"><input type="checkbox" name="included" value="高所作業費">高所作業費</label>
+        <label class="check-item"><input type="checkbox" name="included" value="ウルトラファインバブル継手">ウルトラファインバブル継手</label>
+        <label class="check-item"><input type="checkbox" name="included" value="床暖房リモコン接続費">床暖房リモコン接続費</label>
+        <label class="check-item"><input type="checkbox" name="included" value="ガス管接続部材交換">ガス管接続部材交換</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑤ 生成ボタン -->
   <div class="action-area">
     <button class="btn-primary" onclick="generate()">📄　見積書 ＋ メール本文を生成する</button>
   </div>
@@ -203,10 +304,9 @@
         </div>
       </div>
       <div class="result-panel" id="result_pdf">
-        <p style="font-size:13px;color:var(--text-sub);margin-bottom:12px;">印刷 → PDFに保存 でPDF化できます</p>
         <iframe id="pdfPreview" style="width:100%;height:700px;border:1px solid var(--border);border-radius:var(--radius);" srcdoc=""></iframe>
         <div class="result-actions">
-          <button class="btn-secondary" onclick="printEstimate()">🖨　印刷 / PDF保存</button>
+          <button class="btn-secondary" onclick="savePdf()">💾　PDFとして保存</button>
         </div>
       </div>
     </div>
@@ -214,6 +314,8 @@
 
 </div>
 
-<script src="/assets/app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="assets/app.js"></script>
 </body>
 </html>

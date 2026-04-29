@@ -3,7 +3,7 @@ let OPTIONS = [];
 let DISCOUNTS = [];
 
 async function loadData() {
-  const res = await fetch('/data/options.json');
+  const res = await fetch('data/options.json');
   const data = await res.json();
   OPTIONS = data.options;
   DISCOUNTS = data.discounts;
@@ -12,7 +12,7 @@ async function loadData() {
 
 // ===== セレクト初期化 =====
 function initSelects() {
-  [1, 2, 3].forEach(n => {
+  [1, 2, 3, 4, 5].forEach(n => {
     // オプション
     const sel = document.getElementById(`p${n}_optSelect`);
     sel.innerHTML = '<option value="">── 追加項目を選択 ──</option>';
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ===== 選択済みオプション管理 =====
-const selectedOptions = { 1: [], 2: [], 3: [] };
+const selectedOptions = { 1: [], 2: [], 3: [], 4: [], 5: [] };
 
 function addOption(n) {
   const sel = document.getElementById(`p${n}_optSelect`);
@@ -120,8 +120,6 @@ function calcSubtotal(n) {
   const discount = parseInt(document.getElementById(`p${n}_discount`).value) || 0;
   const total    = base + optTotal + discount;
 
-  document.getElementById(`p${n}_total`).textContent = `¥${total.toLocaleString()}`;
-
   // 提案1は詳細も更新
   if (n === 1) {
     const sb = document.getElementById('p1_subtotal');
@@ -130,10 +128,12 @@ function calcSubtotal(n) {
         <div class="subtotal-row"><span>本体</span><span>¥${base.toLocaleString()}</span></div>
         <div class="subtotal-row"><span>追加合計</span><span>¥${optTotal.toLocaleString()}</span></div>
         ${discount !== 0 ? `<div class="subtotal-row discount-line"><span>割引</span><span>¥${discount.toLocaleString()}</span></div>` : ''}
-        <div class="subtotal-row total"><span>合計金額（税込）</span><span>¥${total.toLocaleString()}</span></div>
+        <div class="subtotal-row total"><span>合計金額（税込）</span><span id="p1_total">¥${total.toLocaleString()}</span></div>
       `;
+      return { base, optTotal, discount, total };
     }
   }
+  document.getElementById(`p${n}_total`).textContent = `¥${total.toLocaleString()}`;
   return { base, optTotal, discount, total };
 }
 
@@ -153,11 +153,62 @@ function copyMail() {
     .then(() => alert('メール本文をコピーしました'));
 }
 
+// ===== PDF直接保存 =====
+async function savePdf() {
+  const iframe = document.getElementById('pdfPreview');
+  const doc = iframe.contentDocument || iframe.contentWindow.document;
+
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+  const name = document.getElementById('recipientName').value.trim() || '';
+  const fileName = `【正直屋　お見積書】${dateStr}${name}様.pdf`;
+
+  const { jsPDF } = window.jspdf;
+  const pages = doc.querySelectorAll('.page');
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  const margin = 10; // mm
+  const pageW = 210;
+  const pageH = 297;
+  const imgW = pageW - margin * 2;
+
+  for (let i = 0; i < pages.length; i++) {
+    if (i > 0) pdf.addPage();
+    const canvas = await html2canvas(pages[i], { scale: 2, useCORS: true, backgroundColor: '#fff' });
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    // キャンバスのアスペクト比を保ってmmに変換
+    const imgH = (canvas.height / canvas.width) * imgW;
+    const topMargin = (pageH - imgH) / 2;
+    pdf.addImage(imgData, 'JPEG', margin, topMargin > 0 ? topMargin : margin, imgW, imgH);
+  }
+
+  pdf.save(fileName);
+}
+
 // ===== 印刷 =====
 function printEstimate() {
   const iframe = document.getElementById('pdfPreview');
+  const doc = iframe.contentDocument || iframe.contentWindow.document;
+
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+  const name = document.getElementById('recipientName').value.trim() || '';
+  const fileName = `【正直屋　お見積書】${dateStr}${name}様`;
+
+  // 親ページのtitleを一時変更（Chromeはこれをファイル名に使う）
+  const originalTitle = document.title;
+  document.title = fileName;
+  doc.title = fileName;
+
+  const style = doc.createElement('style');
+  style.textContent = '@page { margin: 12mm 10mm; }';
+  doc.head.appendChild(style);
+
   iframe.contentWindow.focus();
   iframe.contentWindow.print();
+
+  // 印刷ダイアログが閉じた後にtitleを戻す
+  setTimeout(() => { document.title = originalTitle; }, 1000);
 }
 
 // ===== 見積書生成 =====
@@ -173,7 +224,7 @@ function generate() {
   const fmt = d => `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
 
   // 提案データ収集
-  const proposals = [1, 2, 3].map(n => {
+  const proposals = [1, 2, 3, 4, 5].map(n => {
     const model = document.getElementById(`p${n}_model`).value.trim();
     if (!model) return null;
     const productName = document.getElementById(`p${n}_productName`)?.value.trim() || '';
@@ -189,37 +240,48 @@ function generate() {
   }
 
   // メール本文
-  let mail = `${name} 様\n\nいつもお世話になっております。\n正直屋の${staff}でございます。\n\nこの度はお問い合わせいただきまして、誠にありがとうございます。\n下記の通りお見積りをご案内申し上げます。\n\n`;
-  mail += `【既設機種】${existing}\n\n`;
-  mail += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+  let mail = `${name} 様\n\nこの度は正直屋へお問い合わせをいただき、\n誠にありがとうございます。\n\n以下の通りお見積りおよびご提案をさせていただきます。\nご不明点がございましたらお気軽にご相談ください。\n\n`;
+  const numToCircle = n => ['①','②','③','④','⑤'][n-1];
 
-  proposals.forEach(p => {
-    mail += `\n【ご提案${p.n}】\n`;
-    mail += `型式　　：${p.model}\n`;
-    mail += `本体金額：¥${p.base.toLocaleString()}（税込）\n`;
-    p.opts.forEach(o => { mail += `${o.name}：¥${o.price.toLocaleString()}\n`; });
-    if (p.discount !== 0) mail += `割引　　：¥${p.discount.toLocaleString()}\n`;
-    mail += `合計金額：¥${p.total.toLocaleString()}（税込）\n`;
-    if (p.comment) mail += `※${p.comment}\n`;
-    mail += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+  proposals.forEach((p, i) => {
+    mail += `新設商品${numToCircle(i+1)}\n`;
+    mail += `${p.productName}\n`;
+    mail += `${p.model}\n\n`;
   });
 
-  mail += `\n【交換工事に含まれるもの】\n・給湯器本体\n・施工費\n・撤去・引取込み\n・交通費\n・消費税\n・施工10年保証\n\n詳しくは添付の見積書をご確認ください。\nご不明な点がございましたら、お気軽にお問い合わせください。\n\nどうぞよろしくお願いいたします。\n\n──────────────────\n正直屋　${staff}\nTEL：0800-123-9100\n──────────────────`;
+  mail += `【交換費用：税込】\n`;
+  proposals.forEach((p, i) => {
+    if (p.discount !== 0) {
+      mail += `${numToCircle(i+1)}${p.base.toLocaleString()}円 → 最大${Math.abs(p.discount).toLocaleString()}円割引 →${p.total.toLocaleString()}円\n`;
+    } else {
+      mail += `${numToCircle(i+1)}${p.total.toLocaleString()}円\n`;
+    }
+    if (p.opts.length) {
+      p.opts.forEach(o => { mail += `　※${o.name}（¥${o.price.toLocaleString()}）含む\n`; });
+    }
+    if (p.comment) mail += `　※${p.comment}\n`;
+  });
+
+  const checkedItems = [...document.querySelectorAll('input[name="included"]:checked')].map(el => el.value);
+  mail += `\n【交換工事に含まれるもの】\n`;
+  checkedItems.forEach(item => { mail += `・${item}\n`; });
+  mail += `\n`;
+  mail += `※工事価格も上昇傾向ですので、お見積金額の有効期限は、\n「本日より7日間」とさせていただきます。\n\nどうぞよろしくお願いいたします。\n\n【よくある質問】\n○お支払いは？ → 工事完了後の「後払い」に対応しております。\n○工事日程は？ → 下記お申し込みフォームよりご希望を登録後、\n　　　　　　　　　最短日程をご案内いたします。\n\n\n▼お申し込みはこちら\nhttps://1lejend.com/stepmail/kd.php?no=aegiEvXz\n\nご不明点やご相談などございましたら、\nいつでもお気軽にご連絡くださいませ。\nご要望に対しまして、スタッフ一同しっかりと努めてまいります。\n\n今後ともどうぞよろしくお願い申し上げます。\n------------------------------------\n\n【ガス工事の正直屋】\n◆正直屋 本店\n担当　${staff}\n\n愛知県名古屋市千種区内山三丁目31-20 \n今池NMビル4階\nTEL：050-5497-0700（総合コールセンター）\n------------------------------------\n◆正直屋　大阪支店\n\n大阪府堺市堺区旭ヶ丘中町2丁目2-18\n------------------------------------\n◆正直屋 横浜本店\n\n神奈川県横浜市港北区新横浜1-12-1\nソレイユルヴァン2階`;
 
   document.getElementById('mailBody').textContent = mail;
 
   // 見積書プレビュー（テンプレートをfetchして差し込む）
-  buildEstimatePreviews(proposals, name, staff, existing, fmt(today), fmt(expire));
+  buildEstimatePreviews(proposals, name, staff, existing, fmt(today), fmt(expire), checkedItems);
 
   document.getElementById('resultCard').classList.add('show');
   document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // ===== 見積書プレビュー構築 =====
-async function buildEstimatePreviews(proposals, name, staff, existing, issueDate, expireDate) {
+async function buildEstimatePreviews(proposals, name, staff, existing, issueDate, expireDate, checkedItems) {
   let res;
   try {
-    res = await fetch('/templates/estimate.html');
+    res = await fetch('templates/estimate.html');
   } catch {
     document.getElementById('pdfPreview').srcdoc = '<p style="padding:20px;">テンプレートを読み込めませんでした。</p>';
     return;
@@ -230,16 +292,60 @@ async function buildEstimatePreviews(proposals, name, staff, existing, issueDate
     const noNum = `No.MTM${String(i + 1).padStart(4, '0')}`;
     let html = templateHtml;
 
-    // 変数置換
-    html = html.replace(/<!-- {{発行日}} -->[\s\S]*?(?=<)/, issueDate);
+    // 基本情報
+    html = html.replace('{{発行日}}', issueDate);
     html = html.replace(/No\.MTM\d+/, noNum);
-    html = html.replace(/<!-- {{担当者}} -->[\s\S]*?(?=<)/, staff);
-    html = html.replace(/<!-- {{宛名}} -->[\s\S]*?(?=<)/, name);
-    html = html.replace(/<!-- {{有効期限}} -->[\s\S]*?(?=<)/, expireDate);
-    html = html.replace(/<!-- {{件名}} -->[\s\S]*?(?=<)/, `${existing}交換工事のお見積り`);
-    html = html.replace(/<!-- {{合計金額}} -->[\s\S]*?(?=<)/, `¥${p.total.toLocaleString()}-`);
-    html = html.replace(/<!-- {{型式}} -->[\s\S]*?(?=<)/, p.model);
-    html = html.replace(/<!-- {{提案金額}} -->[\s\S]*?(?=<)/, `¥${p.base.toLocaleString()}`);
+    html = html.replace('{{担当者}}', staff);
+    html = html.replace('{{宛名}}', name);
+    html = html.replace('{{有効期限}}', expireDate);
+    html = html.replace('{{件名}}', '交換工事のお見積り');
+
+    // お見積金額（ヘッダー部）
+    html = html.replace('{{合計金額}}', `¥${p.total.toLocaleString()}-`);
+
+    // 明細テーブル：型式・提案金額
+    html = html.replace('{{型式}}', p.model);
+    html = html.replace('{{提案金額}}', `¥${p.base.toLocaleString()}`);
+
+    // 追加費用行を動的生成
+    const optRows = p.opts.map(o => `
+      <tr>
+        <td class="col-name">${o.name}</td>
+        <td class="col-qty">1</td>
+        <td class="col-price">¥${o.price.toLocaleString()}</td>
+        <td class="col-note"></td>
+      </tr>`).join('');
+    html = html.replace(/(<tr class="empty-row">[\s\S]*?<\/tr>\s*)+/, optRows + '\n');
+
+    // 提案機種詳細
+    const detailText = p.productName
+      ? `${p.productName}<br>品番：${p.model}`
+      : `品番：${p.model}`;
+    html = html.replace('{{提案詳細}}', detailText);
+    html = html.replace('{{既設}}', existing);
+
+    // 右側小計エリア
+    const subtotal = p.base + p.optTotal;
+    html = html.replace('{{小計}}', `¥${subtotal.toLocaleString()}`);
+    html = html.replace('{{合計金額2}}', `¥${p.total.toLocaleString()}`);
+
+    // 割引行：あれば差し替え、なければ行ごと削除
+    if (p.discount !== 0) {
+      html = html.replace('{{割引額}}', `¥${p.discount.toLocaleString()}`);
+    } else {
+      html = html.replace(/<div class="subtotal-row discount">[\s\S]*?<\/div>\s*<\/div>\s*<div class="subtotal-row">\s*<span class="row-label"><\/span>[\s\S]*?<\/div>/, '');
+    }
+
+    // コメント行
+    if (p.comment) {
+      html = html.replace(/<!--\s*コメントがある場合のみ[\s\S]*?-->\s*/, `<div class="set-note">★${p.comment}</div>`);
+    } else {
+      html = html.replace(/<!--\s*コメントがある場合のみ[\s\S]*?-->\s*/, '');
+    }
+
+    // セット内容
+    const setItemsHtml = (checkedItems || []).map(item => `<div>・${item}</div>`).join('');
+    html = html.replace('{{セット内容}}', setItemsHtml);
 
     return html;
   }).join('<div style="page-break-after:always;"></div>');

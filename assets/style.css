@@ -236,3 +236,8 @@ textarea {
   white-space: pre-wrap;
 }
 .result-actions { display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end; }
+
+.check-grid { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.check-section-label { width: 100%; font-size: 12px; font-weight: bold; color: var(--text-sub); }
+.check-item { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+.check-item input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; }
