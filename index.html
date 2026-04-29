@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>正直屋 見積書作成</title>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <h1>正直屋　見積書作成</h1>
+  <span class="header-sub">給湯器交換工事</span>
+</header>
+
+<div class="app-body">
+
+  <!-- ① 基本情報 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">👤</div>
+      <span class="card-header-title">基本情報</span>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="field">
+          <label>宛名（氏名）</label>
+          <input type="text" id="recipientName" placeholder="例：佐藤 健太郎">
+        </div>
+        <div class="field">
+          <label>担当者</label>
+          <input type="text" id="staffName" placeholder="例：加藤">
+        </div>
+        <div class="field full">
+          <label>既設機種</label>
+          <input type="text" id="existingModel" placeholder="例：GT-2428SAWX">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 給湯器本体 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">🔥</div>
+      <span class="card-header-title">給湯器本体（価格表から貼り付け）</span>
+    </div>
+    <div class="card-body">
+      <div class="paste-area">
+        <textarea id="pasteInput" rows="3"
+          placeholder="価格表からコピペしてください&#10;例：ノーリツ20号エコジョーズ給湯のみ壁掛け	GQ-C2034WS	133,400"></textarea>
+        <p class="paste-hint">タブ区切りで「品名　型式　金額」の順で貼り付けると自動で分解します</p>
+      </div>
+      <div class="parsed-result" id="parsedResult">
+        <div class="parsed-row">
+          <span class="parsed-label">品名</span>
+          <input type="text" class="parsed-value" id="parsedName">
+        </div>
+        <div class="parsed-row">
+          <span class="parsed-label">型式</span>
+          <input type="text" class="parsed-value" id="parsedModel">
+        </div>
+        <div class="parsed-row">
+          <span class="parsed-label">金額</span>
+          <input type="text" class="parsed-value" id="parsedPrice">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 提案 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">📋</div>
+      <span class="card-header-title">提案内容</span>
+    </div>
+    <div class="card-body">
+      <div class="proposal-tabs">
+        <button class="tab-btn active" onclick="switchTab(1)">提案１</button>
+        <button class="tab-btn" onclick="switchTab(2)">提案２</button>
+        <button class="tab-btn" onclick="switchTab(3)">提案３</button>
+      </div>
+
+      <!-- 提案1 -->
+      <div class="proposal-panel active" id="panel1">
+        <input type="hidden" id="p1_productName">
+        <div class="form-grid">
+          <div class="field">
+            <label>型式</label>
+            <input type="text" id="p1_model" placeholder="貼り付けから自動入力">
+          </div>
+          <div class="field">
+            <label>本体金額（税込）</label>
+            <input type="text" id="p1_price" placeholder="例：133400" oninput="calcSubtotal(1)">
+          </div>
+        </div>
+        <div>
+          <label style="display:block;margin-bottom:8px;">追加部材・追加工事</label>
+          <div class="options-list" id="p1_options"></div>
+          <div class="option-add-row">
+            <select id="p1_optSelect" onchange="addOption(1)"></select>
+          </div>
+        </div>
+        <div class="discount-row">
+          <label>割引</label>
+          <select id="p1_discount" onchange="calcSubtotal(1)"></select>
+        </div>
+        <div class="subtotal-display" id="p1_subtotal">
+          <div class="subtotal-row"><span>本体</span><span>¥0</span></div>
+          <div class="subtotal-row"><span>追加合計</span><span>¥0</span></div>
+          <div class="subtotal-row total"><span>合計金額（税込）</span><span id="p1_total">¥0</span></div>
+        </div>
+        <div class="field">
+          <label>コメント（任意）</label>
+          <input type="text" id="p1_comment" placeholder="例：+5,000円で10年保証に延長可能">
+        </div>
+      </div>
+
+      <!-- 提案2 -->
+      <div class="proposal-panel" id="panel2">
+        <input type="hidden" id="p2_productName">
+        <div class="form-grid">
+          <div class="field">
+            <label>型式</label>
+            <input type="text" id="p2_model" placeholder="型式を入力">
+          </div>
+          <div class="field">
+            <label>本体金額（税込）</label>
+            <input type="text" id="p2_price" placeholder="例：133400" oninput="calcSubtotal(2)">
+          </div>
+        </div>
+        <div>
+          <label style="display:block;margin-bottom:8px;">追加部材・追加工事</label>
+          <div class="options-list" id="p2_options"></div>
+          <div class="option-add-row">
+            <select id="p2_optSelect" onchange="addOption(2)"></select>
+          </div>
+        </div>
+        <div class="discount-row">
+          <label>割引</label>
+          <select id="p2_discount" onchange="calcSubtotal(2)"></select>
+        </div>
+        <div class="subtotal-display">
+          <div class="subtotal-row total"><span>合計金額（税込）</span><span id="p2_total">¥0</span></div>
+        </div>
+        <div class="field">
+          <label>コメント（任意）</label>
+          <input type="text" id="p2_comment" placeholder="例：+5,000円で10年保証に延長可能">
+        </div>
+      </div>
+
+      <!-- 提案3 -->
+      <div class="proposal-panel" id="panel3">
+        <input type="hidden" id="p3_productName">
+        <div class="form-grid">
+          <div class="field">
+            <label>型式</label>
+            <input type="text" id="p3_model" placeholder="型式を入力">
+          </div>
+          <div class="field">
+            <label>本体金額（税込）</label>
+            <input type="text" id="p3_price" placeholder="例：133400" oninput="calcSubtotal(3)">
+          </div>
+        </div>
+        <div>
+          <label style="display:block;margin-bottom:8px;">追加部材・追加工事</label>
+          <div class="options-list" id="p3_options"></div>
+          <div class="option-add-row">
+            <select id="p3_optSelect" onchange="addOption(3)"></select>
+          </div>
+        </div>
+        <div class="discount-row">
+          <label>割引</label>
+          <select id="p3_discount" onchange="calcSubtotal(3)"></select>
+        </div>
+        <div class="subtotal-display">
+          <div class="subtotal-row total"><span>合計金額（税込）</span><span id="p3_total">¥0</span></div>
+        </div>
+        <div class="field">
+          <label>コメント（任意）</label>
+          <input type="text" id="p3_comment" placeholder="例：+5,000円で10年保証に延長可能">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ 生成ボタン -->
+  <div class="action-area">
+    <button class="btn-primary" onclick="generate()">📄　見積書 ＋ メール本文を生成する</button>
+  </div>
+
+  <!-- ⑤ 生成結果 -->
+  <div class="result-card" id="resultCard">
+    <div class="result-tabs">
+      <div class="result-tab active" onclick="switchResult('mail')">メール本文</div>
+      <div class="result-tab" onclick="switchResult('pdf')">見積書プレビュー</div>
+    </div>
+    <div class="result-content">
+      <div class="result-panel active" id="result_mail">
+        <div class="mail-preview" id="mailBody"></div>
+        <div class="result-actions">
+          <button class="btn-secondary" onclick="copyMail()">コピー</button>
+        </div>
+      </div>
+      <div class="result-panel" id="result_pdf">
+        <p style="font-size:13px;color:var(--text-sub);margin-bottom:12px;">印刷 → PDFに保存 でPDF化できます</p>
+        <iframe id="pdfPreview" style="width:100%;height:700px;border:1px solid var(--border);border-radius:var(--radius);" srcdoc=""></iframe>
+        <div class="result-actions">
+          <button class="btn-secondary" onclick="printEstimate()">🖨　印刷 / PDF保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="/assets/app.js"></script>
+</body>
+</html>

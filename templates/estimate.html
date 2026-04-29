@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+  @font-face {
+    font-family: "Noto Sans JP";
+    src: local("Noto Sans CJK JP");
+    font-weight: 400;
+  }
+  @font-face {
+    font-family: "Noto Sans JP";
+    src: local("Noto Sans CJK JP Medium");
+    font-weight: 500;
+  }
+  @font-face {
+    font-family: "Noto Sans JP";
+    src: local("Noto Sans CJK JP Bold");
+    font-weight: 700;
+  }
+
+  @page {
+    size: A4;
+    margin: 12mm 10mm;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    font-size: 10pt;
+    color: #000;
+    background: #fff;
+  }
+
+  .page {
+    width: 190mm;
+    height: 267mm;
+    max-height: 267mm;
+    overflow: hidden;
+    position: relative;
+    padding: 0;
+  }
+
+  /* ===== 発行情報（最上部・右寄せ） ===== */
+  .issue-info {
+    text-align: right;
+    font-size: 9pt;
+    line-height: 1.8;
+    margin-bottom: 1mm;
+  }
+
+  /* ===== タイトル（全幅・中央） ===== */
+  .title {
+    font-size: 26pt;
+    font-weight: bold;
+    letter-spacing: 0.6em;
+    text-align: center;
+    margin-bottom: 3mm;
+  }
+
+  /* ===== 宛名行（左：宛名　右：会社名） ===== */
+  /* ===== 宛名（独立・幅固定） ===== */
+  .recipient-block {
+    width: 90mm;
+    border-bottom: 1.5px solid #000;
+    padding-bottom: 1mm;
+    min-height: 9mm;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 2mm;
+  }
+
+  .recipient-name { font-size: 13pt; padding-left: 10mm; }
+  .recipient-sama { font-size: 11pt; }
+
+  /* ===== 件名・有効期限（左）＋会社情報（右・独立） ===== */
+  .meta-company-row {
+    display: grid;
+    grid-template-columns: 1fr 64mm;
+    gap: 4mm;
+    margin-bottom: 2mm;
+  }
+
+  .meta-area {
+    font-size: 9.5pt;
+    line-height: 1.9;
+  }
+
+  .meta-row {
+    display: flex;
+    align-items: center;
+    gap: 2mm;
+  }
+
+  .meta-label { min-width: 18mm; white-space: nowrap; }
+
+  .meta-value {
+    background: #ececec;
+    padding: 0.5mm 3mm;
+  }
+
+
+  /* ===== 角印 ===== */
+  .company-info-block {
+    font-size: 8pt;
+    line-height: 1.6;
+    text-align: left;
+    position: relative;
+  }
+
+  .stamp {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 18mm;
+    height: 18mm;
+    opacity: 0.9;
+  }
+
+
+  .company-name-only {
+    font-size: 9pt;
+    font-weight: bold;
+    white-space: nowrap;
+    margin-bottom: 0.5mm;
+  }
+
+  .company-address {
+    font-size: 8pt;
+    line-height: 1.6;
+    text-align: left;
+  }
+
+  /* ===== 挨拶文 ===== */
+  .greeting {
+    font-size: 9.5pt;
+    margin-bottom: 1mm;
+  }
+
+  /* ===== お見積金額 ===== */
+  .amount-section {
+    display: flex;
+    align-items: baseline;
+    gap: 8mm;
+    margin-bottom: 3mm;
+    padding: 1.5mm 0;
+    width: 50%;
+    border-bottom: 1.5px solid #000;
+  }
+
+  .amount-label {
+    font-size: 10pt;
+    white-space: nowrap;
+    padding-left: 3mm;
+    min-width: 26mm;
+  }
+
+  .amount-box {
+    font-size: 18pt;
+    font-weight: bold;
+  }
+
+  /* ===== 明細テーブル ===== */
+  .detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2mm;
+    font-size: 9.5pt;
+  }
+
+  .detail-table th {
+    background: #d9d9d9;
+    border: 1px solid #000;
+    padding: 1.5mm 2mm;
+    text-align: center;
+    font-weight: bold;
+    height: 8mm;
+  }
+
+  .detail-table td {
+    border: 1px solid #000;
+    padding: 1.5mm 2mm;
+    height: 8.5mm;
+    vertical-align: middle;
+  }
+
+  .col-name  { width: 52%; }
+  .col-qty   { width: 8%;  text-align: center; }
+  .col-price { width: 22%; text-align: right; }
+  .col-note  { width: 18%; font-size: 8.5pt; }
+
+  /* 空行 */
+  .empty-row td { background: #fff; }
+
+  /* ===== フッターエリア（提案詳細 + 合計） ===== */
+  .footer-area {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0;
+    border: 1px solid #000;
+    margin-bottom: 3mm;
+  }
+
+  .proposal-detail {
+    padding: 2mm 3mm;
+    font-size: 9pt;
+    line-height: 1.7;
+    border-right: 1px solid #000;
+  }
+
+  .proposal-detail .proposal-title {
+    font-weight: bold;
+    margin-bottom: 1mm;
+  }
+
+  .subtotal-area {
+    min-width: 65mm;
+  }
+
+  .subtotal-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5mm 3mm;
+    border-bottom: 1px solid #000;
+    font-size: 9.5pt;
+    height: 8mm;
+  }
+
+  .subtotal-row:last-child { border-bottom: none; }
+
+  .subtotal-row.discount {
+    color: #cc0000;
+  }
+
+  .subtotal-row.total {
+    font-weight: bold;
+    background: #efefef;
+    border-top: 2px solid #000;
+    height: 9mm;
+    font-size: 10pt;
+  }
+
+  .subtotal-row .row-label { white-space: nowrap; }
+  .subtotal-row .row-value { text-align: right; min-width: 30mm; }
+
+  /* ===== セット内容 ===== */
+  .set-contents {
+    border: 1px solid #000;
+    padding: 1.5mm 3mm;
+    font-size: 8.5pt;
+    line-height: 1.6;
+  }
+
+  .set-contents .set-title {
+    font-weight: bold;
+    margin-bottom: 0.5mm;
+  }
+
+  .set-contents .set-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .set-contents .set-items div {
+    white-space: nowrap;
+  }
+
+  .set-contents .set-note {
+    margin-top: 0.5mm;
+    font-size: 8pt;
+  }
+
+  /* ===== 1ページ収まる設計 ===== */
+  @media print {
+    body { margin: 0; }
+    .page {
+      page-break-after: always;
+      overflow: hidden;
+    }
+    .page:last-child { page-break-after: auto; }
+  }
+
+  /* 行の高さを少しコンパクトに */
+  .detail-table td { height: 7.5mm; }
+  .detail-table th { height: 7mm; }
+</style>
+</head>
+<body>
+
+<!-- ========================================
+  ★ 提案1枚目
+  Geminiはこのブロックを提案数分コピーして値を差し替える
+  ======================================== -->
+<div class="page">
+
+  <!-- ① 発行日・見積番号・担当（右上） -->
+  <div class="issue-info">
+    <!-- {{発行日}} -->2026年4月28日<br>
+    見積番号：&nbsp;&nbsp;No.MTM0699<br>
+    担当：&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<!-- {{担当者}} -->加藤
+  </div>
+
+  <!-- ② 見積書タイトル（全幅中央） -->
+  <div class="title">見　積　書</div>
+
+  <!-- ③ 宛名（左） -->
+  <div class="recipient-block">
+    <span class="recipient-name"><!-- {{宛名}} -->加藤 洋美</span>
+    <span class="recipient-sama">様</span>
+  </div>
+
+  <!-- ④ 件名・有効期限（左）＋会社情報（右・独立） -->
+  <div class="meta-company-row">
+    <div class="meta-area">
+      <div class="meta-row">
+        <span class="meta-label">有効期限：</span>
+        <span><!-- {{有効期限}} -->2026年5月5日</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">件名：</span>
+        <span class="meta-value"><!-- {{件名}} -->交換工事のお見積り</span>
+      </div>
+    </div>
+    <div class="company-info-block">
+      <div class="company-name-only">正直屋本部<br>ジャパンネクストリテイリング株式会社</div>
+      <div class="company-address">
+        〒464-0075<br>
+        愛知県名古屋市千種区内山3-31-20<br>
+        今池ＮＭビル　4階<br>
+        TEL：050-5497-5786<br>
+        登録番号：T3180001151417
+      </div>
+      <img class="stamp" src="data:image/png;base64,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" alt="角印">
+    </div>
+  </div>
+
+  <!-- 挨拶文 -->
+  <div class="greeting">下記の通りお見積り申し上げます。</div>
+
+  <!-- お見積金額 -->
+  <div class="amount-section">
+    <div class="amount-label">お見積金額</div>
+    <div class="amount-box"><!-- {{合計金額}} -->￥ 175,800 -</div>
+  </div>
+
+  <!-- 明細テーブル -->
+  <table class="detail-table">
+    <thead>
+      <tr>
+        <th class="col-name">品名</th>
+        <th class="col-qty">数量</th>
+        <th class="col-price">小計（税込）</th>
+        <th class="col-note">内容</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- ★ 提案品目行（Geminiが差し替え） -->
+      <tr>
+        <td class="col-name"><!-- {{型式}} -->FH-E2422SAWL</td>
+        <td class="col-qty">1</td>
+        <td class="col-price"><!-- {{提案金額}} -->¥166,800</td>
+        <td class="col-note">商品代金（税込）<br>撤去費・引取費含む</td>
+      </tr>
+
+      <!-- ★ 追加費用行（Geminiが提案ごとに差し替え・行数可変） -->
+      <tr>
+        <td class="col-name"><!-- {{追加品名1}} -->据置台</td>
+        <td class="col-qty">1</td>
+        <td class="col-price"><!-- {{追加金額1}} -->¥9,000</td>
+        <td class="col-note"></td>
+      </tr>
+
+      <!-- 空行（品目行＋追加行＋空行で合計10行になるよう調整） -->
+      <tr class="empty-row"><td></td><td></td><td></td><td></td></tr>
+      <tr class="empty-row"><td></td><td></td><td></td><td></td></tr>
+      <tr class="empty-row"><td></td><td></td><td></td><td></td></tr>
+      <tr class="empty-row"><td></td><td></td><td></td><td></td></tr>
+      <tr class="empty-row"><td></td><td></td><td></td><td></td></tr>
+      <tr class="empty-row"><td></td><td></td><td></td><td></td></tr>
+      <tr class="empty-row"><td></td><td></td><td></td><td></td></tr>
+      <tr class="empty-row"><td></td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <!-- フッター：提案詳細 + 小計・合計 -->
+  <div class="footer-area">
+
+    <!-- 左：既設・提案機種詳細 -->
+    <div class="proposal-detail">
+      <div class="proposal-title">【提案機種詳細】</div>
+      <!-- {{提案詳細}} -->
+      ノーリツ24号　エコジョーズ　フルオート　壁掛け<br>
+      品番：FH-E2422SAWL<br><br>
+      【既設機種】<!-- {{既設}} -->GT-2428SAWX
+    </div>
+
+    <!-- 右：小計・割引・合計 -->
+    <div class="subtotal-area">
+      <div class="subtotal-row">
+        <span class="row-label">商品代金（税込）</span>
+        <span class="row-value"><!-- {{小計}} -->¥175,800</span>
+      </div>
+      <!-- 割引がある場合のみ表示。ない場合はこの行を削除 -->
+      <div class="subtotal-row discount">
+        <span class="row-label">特典割引</span>
+        <span class="row-value"><!-- {{割引額}} -->¥-10,000</span>
+      </div>
+      <!-- 割引がある場合の空行調整 -->
+      <div class="subtotal-row">
+        <span class="row-label"></span>
+        <span class="row-value"></span>
+      </div>
+      <div class="subtotal-row total">
+        <span class="row-label">合計金額（税込）</span>
+        <span class="row-value"><!-- {{合計金額}} -->¥165,800</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- セット内容（固定） -->
+  <div class="set-contents">
+    <div class="set-title">【交換工事に含まれるもの】</div>
+    <div class="set-items">
+      <div>・給湯器本体</div>
+      <div>・施工費</div>
+      <div>・撤去・引取込み</div>
+      <div>・交通費</div>
+      <div>・消費税</div>
+      <div>・施工10年保証</div>
+    </div>
+    <!-- コメントがある場合のみ下記を出力。ない場合はこの行ごと削除。
+    <div class="set-note">★{{コメント内容}}</div>
+    -->
+  </div>
+
+</div>
+<!-- ページ終わり -->
+
+</body>
+</html>
