@@ -88,7 +88,7 @@ body {
 .field { display: flex; flex-direction: column; gap: 4px; }
 .field.full { grid-column: 1 / -1; }
 
-label { font-size: 11px; font-weight: 500; color: var(--text-sub); letter-spacing: 0.03em; }
+label { font-size: 12px; font-weight: 700; color: var(--text); letter-spacing: 0.04em; }
 
 input[type="text"], input[type="email"], textarea, select {
   border: 1px solid var(--border);

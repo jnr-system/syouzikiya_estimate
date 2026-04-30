@@ -42,30 +42,26 @@ function switchTab(n) {
 }
 
 // ===== 価格表貼り付け解析 =====
+function parsePaste(n, val) {
+  if (!val) return;
+  const parts = val.split(/\t/);
+  if (parts.length >= 3) {
+    const productName = parts[0].trim();
+    const modelCode  = parts[1].trim();
+    const priceRaw   = parts[2].trim().replace(/[,，円¥\\]/g, '');
+
+    document.getElementById(`p${n}_model`).value = modelCode;
+    document.getElementById(`p${n}_price`).value = priceRaw;
+    document.getElementById(`p${n}_productName`).value = productName;
+    calcSubtotal(n);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('pasteInput').addEventListener('input', function () {
-    const val = this.value.trim();
-    if (!val) { document.getElementById('parsedResult').classList.remove('show'); return; }
-
-    const parts = val.split(/\t/);
-    if (parts.length >= 3) {
-      const productName = parts[0].trim();
-      const modelCode  = parts[1].trim();
-      const priceRaw   = parts[2].trim().replace(/[,，円¥\\]/g, '');
-
-      document.getElementById('parsedName').value  = productName;
-      document.getElementById('parsedModel').value = modelCode;
-      document.getElementById('parsedPrice').value = priceRaw;
-
-      // 提案1に自動反映
-      document.getElementById('p1_model').value = modelCode;
-      document.getElementById('p1_price').value = priceRaw;
-      // 提案1の品名も保持
-      document.getElementById('p1_productName').value = productName;
-      calcSubtotal(1);
-
-      document.getElementById('parsedResult').classList.add('show');
-    }
+  [1, 2, 3, 4, 5].forEach(n => {
+    document.getElementById(`p${n}_pasteInput`).addEventListener('input', function () {
+      parsePaste(n, this.value.trim());
+    });
   });
 
   loadData();
@@ -230,7 +226,7 @@ function generate() {
     const productName = document.getElementById(`p${n}_productName`)?.value.trim() || '';
     const { base, optTotal, discount, total } = calcSubtotal(n);
     const opts    = [...selectedOptions[n]];
-    const comment = document.getElementById(`p${n}_comment`).value.trim();
+    const comment = document.getElementById('comment').value.trim();
     return { n, model, productName, base, optTotal, discount, total, opts, comment };
   }).filter(Boolean);
 
@@ -329,11 +325,14 @@ async function buildEstimatePreviews(proposals, name, staff, existing, issueDate
     html = html.replace('{{小計}}', `¥${subtotal.toLocaleString()}`);
     html = html.replace('{{合計金額2}}', `¥${p.total.toLocaleString()}`);
 
-    // 割引行：あれば差し替え、なければ行ごと削除
+    // 割引行：あれば差し替え、なければ割引行と空行調整行を削除
     if (p.discount !== 0) {
       html = html.replace('{{割引額}}', `¥${p.discount.toLocaleString()}`);
     } else {
-      html = html.replace(/<div class="subtotal-row discount">[\s\S]*?<\/div>\s*<\/div>\s*<div class="subtotal-row">\s*<span class="row-label"><\/span>[\s\S]*?<\/div>/, '');
+      // discount行を削除
+      html = html.replace(/<!--[^>]*割引[^>]*-->\s*<div class="subtotal-row discount">[\s\S]*?<\/div>\s*/,'');
+      // 空行調整行を削除
+      html = html.replace(/<!--[^>]*空行調整[^>]*-->\s*<div class="subtotal-row">\s*<span class="row-label"><\/span>\s*<span class="row-value"><\/span>\s*<\/div>\s*/,'');
     }
 
     // コメント行

@@ -71,18 +71,24 @@
   /* ===== 宛名行（左：宛名　右：会社名） ===== */
   /* ===== 宛名（独立・幅固定） ===== */
   .recipient-block {
-    width: 90mm;
-    border-bottom: 1.5px solid #000;
+    width: 100%;
     padding-bottom: 1mm;
     min-height: 9mm;
     display: flex;
     align-items: flex-end;
-    justify-content: space-between;
+    justify-content: center;
+    gap: 3mm;
     margin-bottom: 2mm;
   }
 
-  .recipient-name { font-size: 13pt; padding-left: 10mm; }
-  .recipient-sama { font-size: 11pt; }
+  .recipient-name {
+    font-size: 13pt;
+    border-bottom: 1.5px solid #000;
+    padding-bottom: 1mm;
+    min-width: 60mm;
+    text-align: center;
+  }
+  .recipient-sama { font-size: 11pt; padding-bottom: 1mm; }
 
   /* ===== 件名・有効期限（左）＋会社情報（右・独立） ===== */
   .meta-company-row {

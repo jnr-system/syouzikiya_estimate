@@ -39,35 +39,6 @@
     </div>
   </div>
 
-  <!-- ② 給湯器本体 -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-header-icon">🔥</div>
-      <span class="card-header-title">給湯器本体（価格表から貼り付け）</span>
-    </div>
-    <div class="card-body">
-      <div class="paste-area">
-        <textarea id="pasteInput" rows="3"
-          placeholder="価格表からコピペしてください&#10;例：ノーリツ20号エコジョーズ給湯のみ壁掛け	GQ-C2034WS	133,400"></textarea>
-        <p class="paste-hint">タブ区切りで「品名　型式　金額」の順で貼り付けると自動で分解します</p>
-      </div>
-      <div class="parsed-result" id="parsedResult">
-        <div class="parsed-row">
-          <span class="parsed-label">品名</span>
-          <input type="text" class="parsed-value" id="parsedName">
-        </div>
-        <div class="parsed-row">
-          <span class="parsed-label">型式</span>
-          <input type="text" class="parsed-value" id="parsedModel">
-        </div>
-        <div class="parsed-row">
-          <span class="parsed-label">金額</span>
-          <input type="text" class="parsed-value" id="parsedPrice">
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- ③ 提案 -->
   <div class="card">
     <div class="card-header">
@@ -86,6 +57,10 @@
       <!-- 提案1 -->
       <div class="proposal-panel active" id="panel1">
         <input type="hidden" id="p1_productName">
+        <div class="paste-area">
+          <textarea id="p1_pasteInput" rows="2"
+            placeholder="価格表からコピペしてください&#10;例：ノーリツ20号エコジョーズ給湯のみ壁掛け	GQ-C2034WS	133,400"></textarea>
+        </div>
         <div class="form-grid">
           <div class="field">
             <label>型式</label>
@@ -112,15 +87,15 @@
           <div class="subtotal-row"><span>追加合計</span><span>¥0</span></div>
           <div class="subtotal-row total"><span>合計金額（税込）</span><span id="p1_total">¥0</span></div>
         </div>
-        <div class="field">
-          <label>コメント（任意）</label>
-          <input type="text" id="p1_comment" placeholder="例：+5,000円で10年保証に延長可能">
-        </div>
       </div>
 
       <!-- 提案2 -->
       <div class="proposal-panel" id="panel2">
         <input type="hidden" id="p2_productName">
+        <div class="paste-area">
+          <textarea id="p2_pasteInput" rows="2"
+            placeholder="価格表からコピペしてください&#10;例：ノーリツ20号エコジョーズ給湯のみ壁掛け	GQ-C2034WS	133,400"></textarea>
+        </div>
         <div class="form-grid">
           <div class="field">
             <label>型式</label>
@@ -145,15 +120,15 @@
         <div class="subtotal-display">
           <div class="subtotal-row total"><span>合計金額（税込）</span><span id="p2_total">¥0</span></div>
         </div>
-        <div class="field">
-          <label>コメント（任意）</label>
-          <input type="text" id="p2_comment" placeholder="例：+5,000円で10年保証に延長可能">
-        </div>
       </div>
 
       <!-- 提案3 -->
       <div class="proposal-panel" id="panel3">
         <input type="hidden" id="p3_productName">
+        <div class="paste-area">
+          <textarea id="p3_pasteInput" rows="2"
+            placeholder="価格表からコピペしてください&#10;例：ノーリツ20号エコジョーズ給湯のみ壁掛け	GQ-C2034WS	133,400"></textarea>
+        </div>
         <div class="form-grid">
           <div class="field">
             <label>型式</label>
@@ -178,14 +153,14 @@
         <div class="subtotal-display">
           <div class="subtotal-row total"><span>合計金額（税込）</span><span id="p3_total">¥0</span></div>
         </div>
-        <div class="field">
-          <label>コメント（任意）</label>
-          <input type="text" id="p3_comment" placeholder="例：+5,000円で10年保証に延長可能">
-        </div>
       </div>
       <!-- 提案4 -->
       <div class="proposal-panel" id="panel4">
         <input type="hidden" id="p4_productName">
+        <div class="paste-area">
+          <textarea id="p4_pasteInput" rows="2"
+            placeholder="価格表からコピペしてください&#10;例：ノーリツ20号エコジョーズ給湯のみ壁掛け	GQ-C2034WS	133,400"></textarea>
+        </div>
         <div class="form-grid">
           <div class="field">
             <label>型式</label>
@@ -210,15 +185,15 @@
         <div class="subtotal-display">
           <div class="subtotal-row total"><span>合計金額（税込）</span><span id="p4_total">¥0</span></div>
         </div>
-        <div class="field">
-          <label>コメント（任意）</label>
-          <input type="text" id="p4_comment" placeholder="例：+5,000円で10年保証に延長可能">
-        </div>
       </div>
 
       <!-- 提案5 -->
       <div class="proposal-panel" id="panel5">
         <input type="hidden" id="p5_productName">
+        <div class="paste-area">
+          <textarea id="p5_pasteInput" rows="2"
+            placeholder="価格表からコピペしてください&#10;例：ノーリツ20号エコジョーズ給湯のみ壁掛け	GQ-C2034WS	133,400"></textarea>
+        </div>
         <div class="form-grid">
           <div class="field">
             <label>型式</label>
@@ -242,10 +217,6 @@
         </div>
         <div class="subtotal-display">
           <div class="subtotal-row total"><span>合計金額（税込）</span><span id="p5_total">¥0</span></div>
-        </div>
-        <div class="field">
-          <label>コメント（任意）</label>
-          <input type="text" id="p5_comment" placeholder="例：+5,000円で10年保証に延長可能">
         </div>
       </div>
 
@@ -281,6 +252,10 @@
         <label class="check-item"><input type="checkbox" name="included" value="ウルトラファインバブル継手">ウルトラファインバブル継手</label>
         <label class="check-item"><input type="checkbox" name="included" value="床暖房リモコン接続費">床暖房リモコン接続費</label>
         <label class="check-item"><input type="checkbox" name="included" value="ガス管接続部材交換">ガス管接続部材交換</label>
+      </div>
+      <div class="field" style="margin-top:16px;">
+        <label>コメント（任意）</label>
+        <input type="text" id="comment" placeholder="例：+5,000円で10年保証に延長可能">
       </div>
     </div>
   </div>
