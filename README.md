@@ -6,8 +6,10 @@
 
 ```
 syouzikiya_estimate/
+├── app.py                  # Flask配信用エントリポイント
 ├── index.html              # メインアプリ
 ├── README.md               # このファイル
+├── requirements.txt        # Python依存関係
 ├── assets/
 │   ├── style.css           # スタイル
 │   ├── app.js              # JavaScript
@@ -28,6 +30,28 @@ syouzikiya_estimate/
 - **交換工事に含まれるもの**：チェックボックスで選択（標準セットはデフォルトON）
 - **メール本文自動生成**：提案内容・交換費用・署名を含む完全なメール文を生成・コピー
 - **見積書PDF保存**：「PDFとして保存」ボタンで直接ダウンロード（ファイル名：`【正直屋　お見積書】YYYYMMDD顧客名様.pdf`）
+
+## 起動方法
+
+### ローカル確認
+
+```bash
+cd syouzikiya_estimate
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python3 app.py
+```
+
+ブラウザで `http://127.0.0.1:5000` を開く。
+
+### 本番常駐起動（gunicorn）
+
+```bash
+cd /root/project/syouzikiya_estimate
+pip install -r requirements.txt
+gunicorn --workers 2 --bind 0.0.0.0:5000 app:app
+```
 
 ## メール本文の構成
 
@@ -79,7 +103,16 @@ syouzikiya_estimate/
 | `{{合計金額2}}` | フッター部の合計金額 |
 | `{{セット内容}}` | 交換工事に含まれるもの |
 
-## ConoHaへのデプロイ手順
+## サーバー公開のおすすめ構成
+
+このアプリは実体としては静的ファイル中心ですが、現在のサーバー運用に合わせて `Flask + gunicorn + Nginx` で公開しています。既存VPSの他アプリと足並みを揃える場合はこちらが扱いやすいです。
+
+社員が同時にアクセスできるようにするには、次のいずれかで公開します。
+
+- 社内LAN内だけで使う：サーバーIP + ポートで公開
+- 社外からも使う：独自ドメイン + SSL で公開
+
+### Nginxで公開する手順
 
 ### 1. Nginxの設定
 
@@ -110,6 +143,13 @@ chmod -R 755 /var/www/syouzikiya_estimate
 ```bash
 certbot --nginx -d estimate.shouzikiya.jp
 ```
+
+### 運用メモ
+
+- `data/options.json` を更新すると、追加部材や割引の内容を変更できる
+- `templates/estimate.html` を更新すると、見積書レイアウトを変更できる
+- `fetch()` を使っているため、`index.html` をPCで直接開くのではなく、必ずHTTPサーバー経由で利用する
+- 外部公開する場合は、必要に応じて `Basic認証` か `VPN/社内IP制限` の追加を推奨
 
 ## 今後の拡張予定
 
