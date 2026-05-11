@@ -13,7 +13,13 @@
   <span class="header-sub">給湯器交換工事</span>
 </header>
 
-<div class="app-body">
+<!-- メインタブ -->
+<div class="main-tabs">
+  <button class="main-tab-btn active" onclick="switchMainTab('create')">見積書作成</button>
+  <button class="main-tab-btn" onclick="switchMainTab('history')">過去の見積書</button>
+</div>
+
+<div class="app-body" id="mainTab_create">
 
   <!-- ① 基本情報 -->
   <div class="card">
@@ -288,8 +294,29 @@
         </div>
       </div>
     </div>
+    <!-- 確定保存エリア -->
+    <div class="confirm-area">
+      <p class="confirm-note">内容を確認したら「この見積書を確定・保存する」を押してください。</p>
+      <button class="btn-confirm" onclick="confirmSave()">✅　この見積書を確定・保存する</button>
+    </div>
   </div>
 
+</div>
+
+<!-- 過去の見積書タブ -->
+<div class="app-body" id="mainTab_history" style="display:none;">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">📂</div>
+      <span class="card-header-title">過去の見積書</span>
+      <button class="btn-secondary" style="margin-left:auto;" onclick="loadHistory()">🔄 更新</button>
+    </div>
+    <div class="card-body">
+      <div id="historyList">
+        <p style="color:var(--text-sub);text-align:center;padding:24px 0;">読み込み中...</p>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>

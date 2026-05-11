@@ -181,6 +181,16 @@ async function savePdf() {
   pdf.save(fileName);
 }
 
+// ===== メインタブ切替 =====
+function switchMainTab(tab) {
+  document.querySelectorAll('.main-tab-btn').forEach((b, i) =>
+    b.classList.toggle('active', (i === 0 && tab === 'create') || (i === 1 && tab === 'history'))
+  );
+  document.getElementById('mainTab_create').style.display = tab === 'create' ? '' : 'none';
+  document.getElementById('mainTab_history').style.display = tab === 'history' ? '' : 'none';
+  if (tab === 'history') loadHistory();
+}
+
 // ===== 印刷 =====
 function printEstimate() {
   const iframe = document.getElementById('pdfPreview');
@@ -235,6 +245,8 @@ function generate() {
     return;
   }
 
+  _lastProposals = proposals;
+
   // メール本文
   let mail = `${name} 様\n\nこの度は正直屋へお問い合わせをいただき、\n誠にありがとうございます。\n\n以下の通りお見積りおよびご提案をさせていただきます。\nご不明点がございましたらお気軽にご相談ください。\n\n`;
   const numToCircle = n => ['①','②','③','④','⑤'][n-1];
@@ -271,6 +283,113 @@ function generate() {
 
   document.getElementById('resultCard').classList.add('show');
   document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ===== 確定保存 =====
+let _lastProposals = [];
+
+async function confirmSave() {
+  if (!_lastProposals.length) {
+    alert('先に見積書を生成してください。');
+    return;
+  }
+
+  const staff    = document.getElementById('staffName').value.trim();
+  const customer = document.getElementById('recipientName').value.trim();
+  if (!staff || !customer) {
+    alert('担当者名とお客様名を入力してから確定してください。');
+    return;
+  }
+
+  if (!confirm(`「${customer} 様」の見積書を確定・保存しますか？`)) return;
+
+  const payload = {
+    staff,
+    customer_name: customer,
+    proposals: _lastProposals.map(p => ({
+      n:           p.n,
+      productName: p.productName,
+      model:       p.model,
+      base:        p.base,
+      optTotal:    p.optTotal,
+      discount:    p.discount,
+      total:       p.total,
+      opts:        p.opts,
+    })),
+  };
+
+  try {
+    const res = await fetch('/api/estimates', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    alert('見積書を保存しました。');
+  } catch (e) {
+    alert('保存に失敗しました：' + e.message);
+  }
+}
+
+// ===== 履歴読み込み =====
+async function loadHistory() {
+  const container = document.getElementById('historyList');
+  container.innerHTML = '<p style="color:var(--text-sub);text-align:center;padding:24px 0;">読み込み中...</p>';
+
+  try {
+    const res  = await fetch('/api/estimates');
+    const list = await res.json();
+
+    if (!list.length) {
+      container.innerHTML = '<p style="color:var(--text-sub);text-align:center;padding:24px 0;">保存された見積書はありません。</p>';
+      return;
+    }
+
+    container.innerHTML = `
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>作成日時</th>
+            <th>作成者</th>
+            <th>お客様名</th>
+            <th>提案数</th>
+            <th>詳細</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(r => `
+            <tr>
+              <td>${r.created_at}</td>
+              <td>${r.staff}</td>
+              <td>${r.customer_name} 様</td>
+              <td>${r.proposals.length}件</td>
+              <td><button class="btn-secondary btn-sm" onclick="toggleDetail(${r.id})">▼ 開く</button></td>
+            </tr>
+            <tr class="history-detail" id="detail_${r.id}" style="display:none;">
+              <td colspan="5">
+                ${r.proposals.map((p, i) => `
+                  <div class="history-proposal">
+                    <span class="proposal-label">提案${i+1}</span>
+                    <span>${p.productName || ''} ${p.model}</span>
+                    <span class="proposal-total">合計 ¥${p.total.toLocaleString()}</span>
+                    ${p.opts && p.opts.length ? '<div class="proposal-opts">' + p.opts.map(o => `・${o.name} ¥${o.price.toLocaleString()}`).join(' ／ ') + '</div>' : ''}
+                    ${p.discount ? `<div class="proposal-opts">割引 ¥${p.discount.toLocaleString()}</div>` : ''}
+                  </div>`).join('')}
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch (e) {
+    container.innerHTML = `<p style="color:red;padding:24px 0;">読み込みに失敗しました：${e.message}</p>`;
+  }
+}
+
+function toggleDetail(id) {
+  const row = document.getElementById(`detail_${id}`);
+  const btn = row.previousElementSibling.querySelector('button');
+  const hidden = row.style.display === 'none';
+  row.style.display = hidden ? '' : 'none';
+  btn.textContent   = hidden ? '▲ 閉じる' : '▼ 開く';
 }
 
 // ===== 見積書プレビュー構築 =====
